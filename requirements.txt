@@ -1,0 +1,7 @@
+python-dotenv
+streamlit
+phidata
+pillow
+google-generativeai
+googlesearch-python
+pycountry
