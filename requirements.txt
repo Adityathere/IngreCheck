@@ -5,3 +5,4 @@ pillow
 google-generativeai
 googlesearch-python
 pycountry
+groq
