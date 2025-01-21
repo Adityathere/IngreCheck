@@ -1,7 +1,5 @@
 <div align="center" >
-      <div style="background-color: white; display: inline-block; padding: 10px; border-radius: 8px;">
-        <img src="assets/logo.png" alt="Logo" style="width: 500px; height: auto;">
-    </div>
+        <img src="assets/logo3.png" alt="Logo" style="width: 500px; height: auto;">
       <h3> Multimodal Agent that analyze product ingredients and provide health and nutrition insights</h3>
   <p>
   <img src="https://img.shields.io/badge/Python-black?logo=python&logoSize=auto&labelColor=%23f7f7f7&color=%233776AB&link=https%3A%2F%2Fwww.python.org%2F" alt="Python Badge">
