@@ -73,6 +73,7 @@ Together, these features make IngreCheck a comprehensive solution for ingredient
 - `google-generativeai`: Integration for using Google's generative AI models
 - `googlesearch-python`: Library for performing Google searches programmatically
 - `pycountry`: Library for working with country-related data (essential for googlesearch)
+- `groq`: Inferencing engine providing LLM models 
 
 
 
