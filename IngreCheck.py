@@ -39,7 +39,7 @@ def get_agent():
 
 def analyze_image(image_path, agent):
     response = agent.run(
-        "Analyze the given image and list ingredients in table format",
+        "Analyze the given image and list ingredients",
         images=[image_path],
     )
     return response.content
