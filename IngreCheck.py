@@ -39,10 +39,26 @@ def get_agent():
 
 def analyze_image(image_path, agent):
     response = agent.run(
-        "Analyze the given image",
+        """Analyze the product image with the following comprehensive steps:
+        1. Extract ALL ingredients from the product label
+        2. For EACH ingredient, provide:
+           - The exact ingredient name
+           - A concise 1-line description
+           - Its primary function or origin
+           - Any quick health note (if applicable)
+        3. Format the results as a markdown table for easy reading""",
         images=[image_path],
     )
-    return response.content
+    
+    # Display ingredients table
+    st.markdown("### Ingredients Breakdown")
+    st.markdown(response.content)
+    
+    # Return full analysis using the predefined DESCRIPTION and INSTRUCTIONS
+    return agent.run(
+        "Perform a comprehensive analysis of the product ingredients based on {system_prompt} and {instructions}",
+        images=[image_path]
+    ).content
 
 def save_uploaded_file(uploaded_file):
     with NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
@@ -87,15 +103,15 @@ def main():
     if mode == "**Analyze Product Ingredients**":
      with st.sidebar.expander("**Sample Images**", icon=":material/imagesmode:"):
         example_images = {
-            "Chocolate(Dairy Milk)": "sample_images/Cadbury_DairyMilk.jpg",
+            "Chocolate": "sample_images/Cadbury_DairyMilk.jpg",
             "Nutella": "sample_images/nutella.jpg",
-            "Chips(Lays)": "sample_images/Lays_chips.jpg",
-            "Energy Drink(Bournvita)": "sample_images/Bournvita.jpg",
-            "Tomato Sauce(Kissan)": "sample_images/KissanTomato_Sauce.png",
-            "Jam(Kissan)": "sample_images/Kissan_Jam.jpg",
-            "Shampoo(Khadi)": "sample_images/Khadi_Shampoo.jpg",
-            "moisturizer(Vaseline)": "sample_images/Vaseline.jpg",
-            "Cleanser(Cetaphil)": "sample_images/Cetaphil_Cleanser.jpg"
+            "Chips": "sample_images/Lays_chips.jpg",
+            "Energy Drink": "sample_images/Bournvita.jpg",
+            "Tomato Sauce": "sample_images/KissanTomato_Sauce.png",
+            "Jam": "sample_images/Kissan_Jam.jpg",
+            "Shampoo": "sample_images/Khadi_Shampoo.jpg",
+            "moisturizer": "sample_images/Vaseline.jpg",
+            "Cleanser": "sample_images/Cetaphil_Cleanser.jpg"
         }
 
         for name, path in example_images.items():
@@ -215,5 +231,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
