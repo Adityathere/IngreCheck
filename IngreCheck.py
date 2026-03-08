@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import streamlit as st
 from PIL import Image
 from io import BytesIO
@@ -29,7 +31,7 @@ def resize_image_for_display(image_file):
 @st.cache_resource
 def get_agent():
     return Agent(
-        model=Gemini(id="gemini-2.0-flash-exp"),
+        model=Gemini(id="gemini-3-flash-preview"),
         system_prompt=DESCRIPTION,
         instructions=INSTRUCTIONS,
         tools=[GoogleSearch(fixed_max_results=10)],
@@ -115,7 +117,7 @@ def main():
         }
 
         for name, path in example_images.items():
-            if st.button(name, use_container_width=True):
+            if st.button(name, width='stretch'):
                 st.session_state.selected_example = path
                 st.session_state.selected_example_name = name
                 st.session_state.analyze_clicked = False
@@ -146,7 +148,7 @@ def main():
             with col2:
                 image_source = uploaded_file if uploaded_file else camera_photo
                 resized_image = resize_image_for_display(image_source)
-                st.image(resized_image, caption="Uploaded Image", use_container_width=False, width=MAX_IMAGE_WIDTH)
+                st.image(resized_image, caption="Uploaded Image", width='content')
 
                 if st.button("Analyze Image"):
                     temp_path = save_uploaded_file(image_source)
@@ -165,7 +167,7 @@ def main():
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 resized_image = resize_image_for_display(st.session_state.selected_example)
-                st.image(resized_image, caption="Selected Example", use_container_width=False, width=MAX_IMAGE_WIDTH)
+                st.image(resized_image, caption="Selected Example", width='content')
 
             if st.button("Analyze Example", key="analyze_example") and not st.session_state.analyze_clicked:
                 st.session_state.analyze_clicked = True
