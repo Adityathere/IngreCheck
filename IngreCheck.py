@@ -1,82 +1,8 @@
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from llm_utils import get_agent, analyze_image, render_llm_output
+from image_utils import resize_image_for_display, save_uploaded_file, remove_file
 import streamlit as st
 from PIL import Image
-from io import BytesIO
-from phi.agent import Agent
-from phi.model.google import Gemini
-from phi.tools.googlesearch import GoogleSearch
-from tempfile import NamedTemporaryFile
-from prompts import DESCRIPTION, INSTRUCTIONS
-
 MAX_IMAGE_WIDTH = 300
-
-def resize_image_for_display(image_file):
-    """Resize image for display only, returns bytes."""
-    if isinstance(image_file, str):
-        img = Image.open(image_file)
-    else:
-        img = Image.open(image_file)
-        image_file.seek(0)
-
-    aspect_ratio = img.height / img.width
-    new_height = int(MAX_IMAGE_WIDTH * aspect_ratio)
-    img = img.resize((MAX_IMAGE_WIDTH, new_height), Image.Resampling.LANCZOS)
-
-    buf = BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
-
-@st.cache_resource
-def get_agent():
-    return Agent(
-        model=Gemini(id="gemini-3-flash-preview"),
-        system_prompt=DESCRIPTION,
-        instructions=INSTRUCTIONS,
-        tools=[GoogleSearch(fixed_max_results=10)],
-        show_tool_calls=True,
-        markdown=True,
-    )
-
-def analyze_image(image_path, agent):
-    response = agent.run(
-        """Analyze the product image with the following comprehensive steps:
-        1. Extract ALL ingredients from the product label
-        2. For EACH ingredient, provide:
-           - The exact ingredient name
-           - A concise 1-line description
-           - Its primary function or origin
-           - Any quick health note (if applicable)
-        3. Format the results as a markdown table for easy reading""",
-        images=[image_path],
-    )
-    
-    # Display ingredients table
-    st.markdown("### Ingredients Breakdown")
-    st.markdown(response.content)
-    
-    # Return full analysis using the predefined DESCRIPTION and INSTRUCTIONS
-    return agent.run(
-        "Perform a comprehensive analysis of the product ingredients based on {system_prompt} and {instructions}",
-        images=[image_path]
-    ).content
-
-def save_uploaded_file(uploaded_file):
-    with NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-        temp_file.write(uploaded_file.getbuffer())
-        return temp_file.name
-
-def remove_file(file_path):
-    try:
-        os.unlink(file_path)
-    except Exception as e:
-        print(f"Error deleting file {file_path}: {e}")
-
-
-
-
-
 
 def main():
     # Initialize session state attributes if they don't exist
@@ -94,6 +20,34 @@ def main():
         initial_sidebar_state="expanded",
         menu_items={'About': "# This is a header. This is an *extremely* cool app!"}
     )
+    st.markdown("""
+<style>
+.llm-output p,
+.llm-output li,
+.llm-output td,
+.llm-output th,
+.llm-output h1,
+.llm-output h2,
+.llm-output h3,
+.llm-output h4,
+.llm-output table {
+    font-family: Georgia, "Times New Roman", serif !important;
+}
+/* Make first column (Ingredient Name) bold */
+.llm-output table td:first-child {
+    font-weight: bold;
+}
+
+.analysis-title {
+    font-family: Georgia, "Times New Roman", serif !important;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
 
     # Sidebar for mode selection
     st.sidebar.markdown("Select between analyzing a single product or comparing two products.")
@@ -117,7 +71,7 @@ def main():
         }
 
         for name, path in example_images.items():
-            if st.button(name, width='stretch'):
+            if st.button(name, use_container_width=True):
                 st.session_state.selected_example = path
                 st.session_state.selected_example_name = name
                 st.session_state.analyze_clicked = False
@@ -128,7 +82,7 @@ def main():
         with outer_col2:
             st.image(Image.open("assets/logo.png"))
             with st.expander("**About**", icon=":material/info:", expanded=False):
-                st.write(""" 
+                st.write("""  
                 :green-background[:green[**IngreCheck**]] is a :green-background[:green[**Product Ingredients Analyzer**]] an AI-powered application that helps you decode the ingredients in the products you use every day. 
                 Whether you're uploading an image, snapping a quick photo, or selecting from a range of sample images, this app provides deep insights into what’s inside your products, empowering you to make healthier choices.
 
@@ -136,29 +90,41 @@ def main():
                 ▶️ Easily upload, capture, or select images of product ingredients directly from the app.  
                 ▶️ AI-driven analysis that evaluates whether the ingredients are healthy or harmful.  
                 ▶️ Interactive design with sample product images, perfect for quick testing.  
-                ▶️ Agentic AI approach for dynamic and personalized ingredient evaluation.  
+                ▶️ Agentic AI approach for dynamic and personalized ingredient evaluation. 
+                
                 """)
 
         # Sidebar options for Analyzer
         uploaded_file = st.sidebar.file_uploader(":green-background[:green[**Upload product image**]]", type=["jpg", "jpeg", "png"])
         camera_photo = st.sidebar.camera_input(":green-background[:green[**Take a picture of the Product**]]")
 
+        
         col1, col2, col3 = st.columns([1, 2, 1])
         if uploaded_file or camera_photo:
+            image_source = uploaded_file if uploaded_file else camera_photo
+            
             with col2:
-                image_source = uploaded_file if uploaded_file else camera_photo
                 resized_image = resize_image_for_display(image_source)
-                st.image(resized_image, caption="Uploaded Image", width='content')
+                st.image(resized_image, caption="Uploaded Image", use_container_width=False)
+                
+            if st.button("Analyze Image"):
+                temp_path = save_uploaded_file(image_source)
+                try:
+                    with st.spinner("Analyzing image..."):
+                        ingredients_table, analysis = analyze_image(temp_path, agent)
 
-                if st.button("Analyze Image"):
-                    temp_path = save_uploaded_file(image_source)
-                    try:
-                        with st.spinner("Analyzing image..."):
-                            analysis = analyze_image(temp_path, agent)
-                        st.markdown("### Analysis Result")
-                        st.markdown(analysis)
-                    finally:
-                        remove_file(temp_path)
+                        st.markdown('<div class="analysis-title">Ingredients Breakdown</div>', unsafe_allow_html=True)
+                        render_llm_output(ingredients_table)
+                        
+                        st.divider()
+                        
+                        st.markdown('<div class="analysis-title">Analysis Result</div>', unsafe_allow_html=True)
+                        render_llm_output(analysis)
+                finally:
+                    remove_file(temp_path)
+                
+
+                   
 
         # Display selected example image for analysis
         if st.session_state.selected_example:
@@ -167,13 +133,17 @@ def main():
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 resized_image = resize_image_for_display(st.session_state.selected_example)
-                st.image(resized_image, caption="Selected Example", width='content')
+                st.image(resized_image, caption="Selected Example", use_container_width=False, width=MAX_IMAGE_WIDTH)
 
             if st.button("Analyze Example", key="analyze_example") and not st.session_state.analyze_clicked:
                 st.session_state.analyze_clicked = True
-                analysis_result=analyze_image(st.session_state.selected_example,agent)
-                st.markdown("### Analysis Result")
-                st.markdown(analysis_result)  # Display the analysis result
+                ingredients_table, analysis = analyze_image(st.session_state.selected_example, agent)
+                
+                st.markdown('<div class="analysis-title">Ingredients Breakdown</div>', unsafe_allow_html=True)
+                render_llm_output(ingredients_table)
+                st.divider()
+                st.markdown('<div class="analysis-title">Analysis Result</div>', unsafe_allow_html=True)
+                render_llm_output(analysis)
 
     # Comparison Mode
     elif mode == "**Compare Product Ingredients**":
@@ -181,12 +151,13 @@ def main():
         with outer_col2:
             st.image(Image.open("assets/logo2.png"))
             with st.expander("**About**", icon=":material/info:", expanded=False):
-                st.write(""":green-background[:green[**IngreCompare**]] is an AI-powered application that compares the ingredients of two products side by side.
-
+                st.write("""
+                         
+                         :green-background[:green[**IngreCompare**]] is an AI-powered application that compares the ingredients of two products side by side.
 #### Key Features:
 ▶️ Compare ingredients lists of two products at a glance.  
 ▶️ Upload or Take photos of products for side by side comparison.  
-▶️ AI-driven analysis highlights similarities and differences."""                       )
+▶️ AI-driven analysis highlights similarities and differences. """)
         product1_path, product2_path = None, None
 
         # Sidebar options for Comparison
@@ -215,17 +186,24 @@ def main():
             if st.button("Compare Ingredients"):
                 try:
                     with st.spinner("Analyzing and comparing..."):
-                        product1_analysis = analyze_image(product1_path, agent)
-                        product2_analysis = analyze_image(product2_path, agent)
-
+                        product1_table, product1_analysis = analyze_image(product1_path, agent)
+                        product2_table, product2_analysis = analyze_image(product2_path, agent)
                         st.markdown("### Comparison Results")
+                       
                         comparison_col1, comparison_col2 = st.columns(2)
                         with comparison_col1:
-                            st.write("#### Product 1 Ingredients")
-                            st.markdown(product1_analysis)
+                           st.markdown('<div class="analysis-title">Product 1 Ingredients</div>', unsafe_allow_html=True)
+                           render_llm_output(product1_table)
+                           
+                           st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
+                           render_llm_output(product1_analysis)
+                        
                         with comparison_col2:
-                            st.write("#### Product 2 Ingredients")
-                            st.markdown(product2_analysis)
+                           st.markdown('<div class="analysis-title">Product 2 Ingredients</div>', unsafe_allow_html=True)
+                           render_llm_output(product2_table)
+                           
+                           st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
+                           render_llm_output(product2_analysis)                       
                 finally:
                     remove_file(product1_path)
                     remove_file(product2_path)
