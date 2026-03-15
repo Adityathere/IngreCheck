@@ -20,7 +20,7 @@ agent = Agent(
         "When necessary, clarify medical terms and suggest consulting a healthcare professional for personalized advice.",
         "Maintain a conversational and empathetic tone to ensure user comfort."
     ],
-    show_tool_calls=True,
+    show_tool_calls=False,
     markdown=True,
     add_datetime_to_instructions=True,
     add_history_to_messages=True,
