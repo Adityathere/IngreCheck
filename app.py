@@ -3,8 +3,58 @@ from image_utils import resize_image_for_display, save_uploaded_file, remove_fil
 import streamlit as st
 from PIL import Image
 MAX_IMAGE_WIDTH = 300
+st.set_page_config(page_title="IngreCheck", layout="wide")
+
+
+def render_overall_rating(analysis_text):
+    """Extracts and renders the overall rating as a styled banner."""
+    import re
+
+    if "Safe 🟢" in analysis_text or ("Safe" in analysis_text and "🟢" in analysis_text):
+        color = "#2ecc71"
+        bg = "#e9faf0"
+        label = "Safe 🟢"
+    elif "Risky 🔴" in analysis_text or ("Risky" in analysis_text and "🔴" in analysis_text):
+        color = "#e74c3c"
+        bg = "#fdf0f0"
+        label = "Risky 🔴"
+    else:
+        color = "#f39c12"
+        bg = "#fef9e7"
+        label = "Moderate 🟡"
+
+    score_match = re.search(r"\*\*Overall Score:\*\*\s*([\d.]+/\d+)", analysis_text)
+    score = score_match.group(1) if score_match else "N/A"
+
+    summary_match = re.search(r"\*\*Summary:\*\*\s*(.+?)(?:\n\n|\Z)", analysis_text, re.DOTALL)
+    summary = summary_match.group(1).strip() if summary_match else ""
+
+    st.markdown(f"""
+    <div class="llm-output" style="
+        background-color: {bg};
+        border-left: 6px solid {color};
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+    ">
+        <div style="font-size: 22px; font-weight: bold; color: {color};">
+            Overall Rating: {label}
+        </div>
+        <div style="font-size: 16px; margin-top: 6px; color: #333;">
+            <strong>Score:</strong> {score} &nbsp;|&nbsp; {summary}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def main():
+    st.set_page_config(
+        page_title="IngreCheck",
+        page_icon="assets/favicon.png",
+        layout="wide",
+        initial_sidebar_state="expanded",
+        menu_items={'About': "# This is a header. This is an *extremely* cool app!"}
+    )
+
     # Initialize session state attributes if they don't exist
     if 'selected_example' not in st.session_state:
         st.session_state.selected_example = None
@@ -13,15 +63,11 @@ def main():
     if 'analyze_clicked' not in st.session_state:
         st.session_state.analyze_clicked = False
 
-    st.set_page_config(
-        page_title="IngreCheck",
-        page_icon="assets/favicon.png",
-        layout="wide",
-        initial_sidebar_state="expanded",
-        menu_items={'About': "# This is a header. This is an *extremely* cool app!"}
-    )
+
     st.markdown("""
 <style>
+/* Georgia font only for LLM output content */
+.llm-output,
 .llm-output p,
 .llm-output li,
 .llm-output td,
@@ -30,23 +76,51 @@ def main():
 .llm-output h2,
 .llm-output h3,
 .llm-output h4,
-.llm-output table {
+.llm-output div,
+.llm-output span,
+.llm-output strong,
+.llm-output em {
     font-family: Georgia, "Times New Roman", serif !important;
+    font-size: 18px;
 }
-/* Make first column (Ingredient Name) bold */
+
+.llm-output {
+    overflow-x: auto;
+    display: block;
+    max-width: 100%;
+}
+
+.llm-output table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.llm-output table td,
+.llm-output table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
 .llm-output table td:first-child {
     font-weight: bold;
 }
 
+.llm-output table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Analysis title styling */
 .analysis-title {
     font-family: Georgia, "Times New Roman", serif !important;
     font-size: 28px;
     font-weight: bold;
 }
-
 </style>
 """, unsafe_allow_html=True)
-
 
 
     # Sidebar for mode selection
@@ -82,17 +156,17 @@ def main():
         with outer_col2:
             st.image(Image.open("assets/logo.png"))
             with st.expander("**About**", icon=":material/info:", expanded=False):
-                st.write("""  
+                st.markdown("""
+                            <div style="font-size: 18px;">
                 :green-background[:green[**IngreCheck**]] is a :green-background[:green[**Product Ingredients Analyzer**]] an AI-powered application that helps you decode the ingredients in the products you use every day. 
-                Whether you're uploading an image, snapping a quick photo, or selecting from a range of sample images, this app provides deep insights into what’s inside your products, empowering you to make healthier choices.
+                Whether you're uploading an image, snapping a quick photo, or selecting from a range of sample images, this app provides deep insights into what's inside your products, empowering you to make healthier choices.
 
                 #### Key Features:
                 ▶️ Easily upload, capture, or select images of product ingredients directly from the app.  
                 ▶️ AI-driven analysis that evaluates whether the ingredients are healthy or harmful.  
                 ▶️ Interactive design with sample product images, perfect for quick testing.  
-                ▶️ Agentic AI approach for dynamic and personalized ingredient evaluation. 
-                
-                """)
+                ▶️ Agentic AI approach for dynamic and personalized ingredient evaluation.
+                            </div> """, unsafe_allow_html=True)
 
         # Sidebar options for Analyzer
         uploaded_file = st.sidebar.file_uploader(":green-background[:green[**Upload product image**]]", type=["jpg", "jpeg", "png"])
@@ -119,6 +193,7 @@ def main():
                         st.divider()
                         
                         st.markdown('<div class="analysis-title">Analysis Result</div>', unsafe_allow_html=True)
+                        render_overall_rating(analysis)
                         render_llm_output(analysis)
                 finally:
                     remove_file(temp_path)
@@ -143,6 +218,7 @@ def main():
                 render_llm_output(ingredients_table)
                 st.divider()
                 st.markdown('<div class="analysis-title">Analysis Result</div>', unsafe_allow_html=True)
+                render_overall_rating(analysis)
                 render_llm_output(analysis)
 
     # Comparison Mode
@@ -192,18 +268,22 @@ def main():
                        
                         comparison_col1, comparison_col2 = st.columns(2)
                         with comparison_col1:
-                           st.markdown('<div class="analysis-title">Product 1 Ingredients</div>', unsafe_allow_html=True)
-                           render_llm_output(product1_table)
+                            st.markdown('<div class="analysis-title">Product 1 Ingredients</div>', unsafe_allow_html=True)
+                            render_llm_output(product1_table)
+
                            
-                           st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
-                           render_llm_output(product1_analysis)
+                            st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
+                            render_overall_rating(product1_analysis) # <-- add this line
+                            render_llm_output(product1_analysis)
                         
                         with comparison_col2:
-                           st.markdown('<div class="analysis-title">Product 2 Ingredients</div>', unsafe_allow_html=True)
-                           render_llm_output(product2_table)
+                            st.markdown('<div class="analysis-title">Product 2 Ingredients</div>', unsafe_allow_html=True)
+                            render_llm_output(product2_table)
+
                            
-                           st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
-                           render_llm_output(product2_analysis)                       
+                            st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
+                            render_overall_rating(product2_analysis) # <-- add this line
+                            render_llm_output(product2_analysis)                   
                 finally:
                     remove_file(product1_path)
                     remove_file(product2_path)
