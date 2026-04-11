@@ -7,3 +7,9 @@ googlesearch-python
 pycountry
 groq
 markdown
+langchain 
+langchain-google-genai 
+langchain-community 
+tavily-python
+duckduckgo-search
+wikipedia

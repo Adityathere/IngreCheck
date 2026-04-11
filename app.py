@@ -1,4 +1,4 @@
-from llm_utils import get_agent, analyze_image, render_llm_output
+from llm_utils_agent_advanced import get_agent, analyze_image, render_llm_output
 from image_utils import resize_image_for_display, save_uploaded_file, remove_file
 import streamlit as st
 from PIL import Image
@@ -156,17 +156,15 @@ def main():
         with outer_col2:
             st.image(Image.open("assets/logo.png"))
             with st.expander("**About**", icon=":material/info:", expanded=False):
-                st.write("""  
+                st.write("""
                 :green-background[:green[**IngreCheck**]] is a :green-background[:green[**Product Ingredients Analyzer**]] an AI-powered application that helps you decode the ingredients in the products you use every day. 
-                Whether you're uploading an image, snapping a quick photo, or selecting from a range of sample images, this app provides deep insights into what’s inside your products, empowering you to make healthier choices.
+                Whether you're uploading an image, snapping a quick photo, or selecting from a range of sample images, this app provides deep insights into what's inside your products, empowering you to make healthier choices.
 
                 #### Key Features:
                 ▶️ Easily upload, capture, or select images of product ingredients directly from the app.  
                 ▶️ AI-driven analysis that evaluates whether the ingredients are healthy or harmful.  
                 ▶️ Interactive design with sample product images, perfect for quick testing.  
-                ▶️ Agentic AI approach for dynamic and personalized ingredient evaluation. 
-                
-                """)
+                ▶️ Agentic AI approach for dynamic and personalized ingredient evaluation.""", unsafe_allow_html=True)
 
         # Sidebar options for Analyzer
         uploaded_file = st.sidebar.file_uploader(":green-background[:green[**Upload product image**]]", type=["jpg", "jpeg", "png"])
