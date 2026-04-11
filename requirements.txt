@@ -14,3 +14,4 @@ tavily-python
 duckduckgo-search
 Wikipedia
 ddgs
+langchain_tavily
