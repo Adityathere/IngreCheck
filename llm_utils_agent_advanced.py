@@ -206,8 +206,13 @@ def analyze_image(image_path: str, model) -> tuple[str, str]:
         future_analysis = executor.submit(
             _invoke_with_image_data, model, ANALYSIS_PROMPT, image_data, mime_type
         )
+        future_details = executor.submit(
+            _invoke_with_image_data, model, PRODUCT_DETAILS_PROMPT, image_data, mime_type
+        )
 
         ingredients_table = future_ingredients.result()
         analysis = future_analysis.result()
+        product_details = future_details.result()
 
-    return ingredients_table, analysis
+
+    return ingredients_table, analysis, product_details 
