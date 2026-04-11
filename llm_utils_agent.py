@@ -26,11 +26,9 @@ import streamlit as st
 import markdown as md
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from prompts import DESCRIPTION, INSTRUCTIONS, INGREDIENT_PROMPT, ANALYSIS_PROMPT
-
-
 from langchain.agents import create_agent  
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
+from prompts import DESCRIPTION, INSTRUCTIONS, INGREDIENT_PROMPT, ANALYSIS_PROMPT
 
 @st.cache_resource
 def get_agent():
@@ -47,7 +45,7 @@ def get_agent():
         max_retries=3,
     )
 
-    tavily_tool = TavilySearchResults(
+    tavily_tool = TavilySearch(
         max_results=10,
         tavily_api_key=os.getenv("TAVILY_API_KEY"),
     )

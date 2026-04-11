@@ -262,7 +262,8 @@ def main():
                     with st.spinner("Analyzing and comparing..."):
                         product1_table, product1_analysis = analyze_image(product1_path, agent)
                         product2_table, product2_analysis = analyze_image(product2_path, agent)
-                        st.markdown("### Comparison Results")
+                        st.markdown('<h3 style="font-family: Georgia, Times New Roman, serif; ' \
+                        'font-size:28px; font-weight:bold;">Comparison Results</h3>',unsafe_allow_html=True)
                        
                         comparison_col1, comparison_col2 = st.columns(2)
                         with comparison_col1:
