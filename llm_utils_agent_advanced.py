@@ -187,7 +187,7 @@ def render_llm_output(text: str) -> None:
     st.markdown(f'<div class="llm-output">{html}</div>', unsafe_allow_html=True)
 
 
-def analyze_image(image_path: str, model) -> tuple[str, str]:
+def analyze_image(image_path: str, model) -> tuple[str, str, str]:
     """
     Run ingredient extraction + analysis in parallel for faster results.
 
