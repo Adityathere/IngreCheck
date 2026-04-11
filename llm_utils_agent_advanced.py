@@ -34,7 +34,7 @@ from langchain_tavily import TavilySearch
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
-from prompts import DESCRIPTION, INSTRUCTIONS, INGREDIENT_PROMPT, ANALYSIS_PROMPT
+from prompts import DESCRIPTION, INSTRUCTIONS, INGREDIENT_PROMPT, ANALYSIS_PROMPT, PRODUCT_DETAILS_PROMPT
 from langchain.tools import tool
 
 
