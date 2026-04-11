@@ -183,13 +183,16 @@ def main():
                 temp_path = save_uploaded_file(image_source)
                 try:
                     with st.spinner("Analyzing image..."):
-                        ingredients_table, analysis = analyze_image(temp_path, agent)
+                        ingredients_table, analysis, product_details = analyze_image(temp_path, agent)
 
                         st.markdown('<div class="analysis-title">Ingredients Breakdown</div>', unsafe_allow_html=True)
                         render_llm_output(ingredients_table)
                         
                         st.divider()
-                        
+                        st.markdown('<div class="analysis-title">Product Details</div>', unsafe_allow_html=True)
+                        render_llm_output(product_details)
+
+                        st.divider()
                         st.markdown('<div class="analysis-title">Analysis Result</div>', unsafe_allow_html=True)
                         render_overall_rating(analysis)
                         render_llm_output(analysis)
@@ -210,10 +213,15 @@ def main():
 
             if st.button("Analyze Example", key="analyze_example") and not st.session_state.analyze_clicked:
                 st.session_state.analyze_clicked = True
-                ingredients_table, analysis = analyze_image(st.session_state.selected_example, agent)
+                ingredients_table, analysis, product_details = analyze_image(st.session_state.selected_example, agent)
                 
                 st.markdown('<div class="analysis-title">Ingredients Breakdown</div>', unsafe_allow_html=True)
                 render_llm_output(ingredients_table)
+
+                st.divider()
+                st.markdown('<div class="analysis-title">Product Details</div>', unsafe_allow_html=True)
+                render_llm_output(product_details)
+
                 st.divider()
                 st.markdown('<div class="analysis-title">Analysis Result</div>', unsafe_allow_html=True)
                 render_overall_rating(analysis)
@@ -260,17 +268,24 @@ def main():
             if st.button("Compare Ingredients"):
                 try:
                     with st.spinner("Analyzing and comparing..."):
-                        product1_table, product1_analysis = analyze_image(product1_path, agent)
-                        product2_table, product2_analysis = analyze_image(product2_path, agent)
-                        st.markdown('<h3 style="font-family: Georgia, Times New Roman, serif; ' \
-                        'font-size:28px; font-weight:bold;">Comparison Results</h3>',unsafe_allow_html=True)
+                        product1_table, product1_analysis, product1_details = analyze_image(product1_path, agent)
+                        product2_table, product2_analysis, product2_details = analyze_image(product2_path, agent)
+                        # st.markdown("### Comparison Results")
+                        st.markdown(
+    '<h3 style="font-family: Georgia, Times New Roman, serif; font-size:28px; font-weight:bold;">Comparison Results</h3>',
+    unsafe_allow_html=True
+)
                        
                         comparison_col1, comparison_col2 = st.columns(2)
                         with comparison_col1:
                             st.markdown('<div class="analysis-title">Product 1 Ingredients</div>', unsafe_allow_html=True)
                             render_llm_output(product1_table)
 
-                           
+                            st.divider()
+                            st.markdown('<div class="analysis-title">Product 1 Details</div>', unsafe_allow_html=True)
+                            render_llm_output(product1_details)
+
+                            st.divider()
                             st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
                             render_overall_rating(product1_analysis) # <-- add this line
                             render_llm_output(product1_analysis)
@@ -279,7 +294,11 @@ def main():
                             st.markdown('<div class="analysis-title">Product 2 Ingredients</div>', unsafe_allow_html=True)
                             render_llm_output(product2_table)
 
-                           
+                            st.divider()
+                            st.markdown('<div class="analysis-title">Product 2 Details</div>', unsafe_allow_html=True)
+                            render_llm_output(product2_details)
+
+                            st.divider()
                             st.markdown('<div class="analysis-title">Analysis</div>', unsafe_allow_html=True)
                             render_overall_rating(product2_analysis) # <-- add this line
                             render_llm_output(product2_analysis)                   

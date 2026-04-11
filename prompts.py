@@ -63,3 +63,32 @@ Base the Overall Category on:
 - Moderate 🟡 → Some artificial additives or moderate health concerns
 - Risky 🔴 → Multiple harmful additives, high sugar/sodium, significant health concerns
 """
+
+
+PRODUCT_DETAILS_PROMPT = """Extract all product details visible on the label OTHER than the ingredients list.
+
+Look for and extract the following information if visible:
+
+| Detail | Value |
+|---|---|
+| Product Name | |
+| Brand | |
+| Manufactured By | |
+| Marketed By | |
+| Manufacturing Location | |
+| Country of Origin | |
+| Manufacturing Date | |
+| Expiry / Best Before Date | |
+| Batch / Lot Number | |
+| Net Weight / Volume | |
+| Serving Size | |
+| Servings Per Package | |
+| Storage Instructions | |
+| Customer Care / Contact | |
+| License / Certifications (FSSAI, ISO etc.) | |
+
+Rules:
+- Fill only what is clearly visible on the label — do NOT guess or assume.
+- If a field is not visible, write **Not visible on label**.
+- Return ONLY the markdown table, no extra text.
+"""
