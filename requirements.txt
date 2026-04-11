@@ -12,4 +12,5 @@ langchain-google-genai
 langchain-community 
 tavily-python
 duckduckgo-search
-wikipedia
+Wikipedia
+ddgs
