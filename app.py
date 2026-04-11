@@ -3,7 +3,7 @@ from image_utils import resize_image_for_display, save_uploaded_file, remove_fil
 import streamlit as st
 from PIL import Image
 MAX_IMAGE_WIDTH = 300
-st.set_page_config(page_title="IngreCheck", layout="wide")
+# st.set_page_config(page_title="IngreCheck", layout="wide")
 
 
 def render_overall_rating(analysis_text):
